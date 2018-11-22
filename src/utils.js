@@ -26,11 +26,17 @@ export function printDetails (feature) {
 
   return `
   <div class="popup-item">
+  <div class="metadata-row"> 
+  <div class="image">
+  <img src="${properties.image}" />
+  </div>
+  <div class="metadata"> 
   <div class="fu-preview"  style="background:${colors[properties.fu_value]}"></div><div class="more-info-btn"></div>
   <div> FU value: ${properties.fu_value}</div>
   <div> Date: ${properties.date_photo}</div>
   <div> Device:  ${properties.device_model}</div>
- 
+ </div>
+ </div>
   <div class="raw-details">
       <h4>Details<h4>
       <pre>

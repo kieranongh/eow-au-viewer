@@ -93,8 +93,8 @@ popup.getElement().addEventListener('click', function (event) {
     popup.getElement().classList.remove('active')
   }
 
-  if (event.target.matches('.popup-item')) {
-    const element = event.target
+  if (event.target.matches('.more-info-btn')) {
+    const element = event.target.closest('.popup-item')
     element.classList.toggle('active')
   }
 }, false)

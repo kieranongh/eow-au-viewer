@@ -27,7 +27,6 @@ body {
 }
 
 #popup {
-  cursor: pointer;
   display: none;
   width: 500px;
   background: #ffffff;
@@ -84,9 +83,9 @@ body {
 }
 
 .more-info-btn {
-  pointer-events: none;
-  height: 10px;
+  height: 15px;
   float: right;
+  cursor: pointer;
 }
 
 .more-info-btn::after {
@@ -159,4 +158,25 @@ body {
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
   transition: opacity 0.3s ease-in-out;
   pointer-events: none;
+}
+
+.popup-item .image, .popup-item .metadata {
+  display: inline-block;
+}
+.metadata-row {
+  display: flex;
+  flex-direction: row;
+}
+.popup-item .metadata  {
+  margin-left: 1em;
+  flex-grow: 3
+}
+.popup-item img {
+  width: 75px;
+  height: 75px;
+  flex-grow: 1
+}
+
+pre {
+  white-space: pre-wrap; 
 }
