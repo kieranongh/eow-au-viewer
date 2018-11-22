@@ -1,0 +1,162 @@
+html,
+body {
+  height: 100%;
+  width: 100%;
+  margin: 0px;
+  font-family: Tahoma, Geneva, sans-serif;
+  color: #777777;
+}
+
+.header {
+  padding: 0 0;
+  position: fixed;
+  z-index: 10;
+  background: #45aaf2;
+  width: 100%;
+  color: #ffffff;
+}
+
+.header h1 {
+  padding: 0 0.5em;
+}
+
+#map {
+  height: 100%;
+  width: 100%;
+  background: #aad3df;
+}
+
+#popup {
+  cursor: pointer;
+  display: none;
+  width: 500px;
+  background: #ffffff;
+  max-height: 500px;
+}
+
+#popup>div {
+  padding: 1em;
+}
+
+#popup.active {
+  display: block;
+}
+
+#popup .title {
+  border-bottom: 1px solid #bebebe;
+
+}
+
+#popup .content {
+  overflow: auto;
+  max-height: 300px;
+  padding: 1em;
+}
+
+#popup .close {
+  float: right;
+  position: absolute;
+  top: 4px;
+  right: 8px;
+}
+
+#popup .close::before {
+  content: '\00d7'
+}
+
+.popup-item {
+  padding: 0.5em;
+  border: 1px solid #acacac
+}
+
+.fu-preview {
+  display: inline-block;
+  height: 20px;
+  width: 100px;
+}
+
+.raw-details {
+  display: none;
+}
+
+.popup-item.active .raw-details {
+  display: block;
+}
+
+.more-info-btn {
+  pointer-events: none;
+  height: 10px;
+  float: right;
+}
+
+.more-info-btn::after {
+  content: 'More details'
+}
+
+
+
+.popup-item.active .more-info-btn::after {
+  content: 'Less details'
+}
+
+.sub-header-stats {
+  background: #ffffff;
+  color: #777777;
+}
+
+.sub-header-stats>div {
+  text-align: center;
+
+}
+
+.sub-header-stats ul {
+  margin: 0 auto;
+}
+
+.sub-header-stats ul,
+.stats ul {
+  list-style: none;
+  margin: 0;
+}
+
+.sub-header-stats ul li,
+.stats ul li {
+  display: inline-block;
+  margin: 0.3em;
+  text-align: center;
+}
+
+
+.stats-value {
+  display: block;
+  font-weight: bolder;
+  font-size: 0.9em;
+}
+
+.stats-label {
+  display: block;
+  font-size: 0.7em;
+}
+
+.stat-extra {
+  font-size: 0.7em;
+  font-weight: lighter;
+  margin-top: -10px;
+}
+
+.box-shadow {
+  position: relative;
+}
+
+.box-shadow:after {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 1;
+  border-radius: 5px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  transition: opacity 0.3s ease-in-out;
+  pointer-events: none;
+}
