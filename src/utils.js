@@ -17,7 +17,7 @@ export function getLargestAmount (collection) {
 }
 
 export function printDetails (feature) {
-  // Removed the geometry to avoid circlar reference when serializing
+  // Removed the geometry to avoid circular reference when serializing
   let properties = Object.assign(feature.getProperties(), {
     geometry: '*removed*'
   })
