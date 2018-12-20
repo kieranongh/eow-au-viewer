@@ -1,3 +1,4 @@
+import orderBy from 'lodash/orderBy'
 // Load colors json from external file to keep things neat
 export const colors = require('./colors.json')
 
@@ -65,7 +66,11 @@ export function calculateStats (features) {
   stats = features.reduce((stats, feature) => {
     const properties = feature.getProperties()
     // ~~ to coerce NaN/undefined to 0
-    users[properties.user_n_code] = ~~users[properties.user_n_code] + 1
+    // Only count users from EOW AU
+    if (properties.application === 'australia') {
+      users[properties.user_n_code] = ~~users[properties.user_n_code] + 1
+    }
+
     fuValues[properties.fu_value] = ~~fuValues[properties.fu_value] + 1
     devices[properties.device_model] = ~~devices[properties.device_model] + 1
     stats[properties.device_platform === 'iOS' ? 'iphones' : 'androids'] += 1
@@ -91,7 +96,25 @@ export function calculateStats (features) {
   })
 }
 
-export function printStats (stats) {
+export function renderUsers (users, n = 10) {
+  const userList = orderBy(users, ['points'], ['desc']).slice(0, n).map(user => {
+    let itemTemplate = ` <li class="item" data-user="${user.id}">
+    <div>
+      <img  class="icon-thumb" src="https://eyeonwater.org/grfx/${user.icon}">
+    </div>
+    <div>
+      <div class="item-nickname">${user.nickname}</div>
+      <div class="item-photo-count">(${user.photo_count} photos)</div>
+      <div class="item-points">${user.points} points (level ${user.level})</div>
+    </div>
+  </li>`
+    return itemTemplate
+  })
+
+  document.querySelector('.user-list ul').innerHTML = userList.join('\n')
+}
+
+export function printStats (stats, userStore) {
   return `
     <div>
       <ul>
@@ -116,7 +139,8 @@ export function printStats (stats) {
         <span class="stats-label">Average FU</span>
         </li>
         <li>
-        <span class="stats-value">${stats.mostActiveUser.item ? `${stats.mostActiveUser.item}<span class="stat-extra">@${stats.mostActiveUser.amount}</span>` : 'N/A'}</span>
+        
+        <span class="stats-value">${stats.mostActiveUser.item ? `${userStore.getUserById(stats.mostActiveUser.item).nickname}<span class="stat-extra">@${stats.mostActiveUser.amount}</span>` : 'N/A'}</span>
         <span class="stats-label">Most Active User</span>
         </li>
         <li>

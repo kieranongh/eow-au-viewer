@@ -1,24 +1,98 @@
 import './css/styles.css'
-import { Map, View, Overlay } from 'ol'
-import { fromLonLat } from 'ol/proj'
-import { Tile as TileLayer, Vector as VectorLayer } from 'ol/layer'
-import { OSM, Vector as VectorSource } from 'ol/source'
+import orderBy from 'lodash/orderBy'
+import debounce from 'lodash/debounce'
+import keyBy from 'lodash/keyBy'
+import groupBy from 'lodash/groupBy'
+
+import {
+  DateTime
+} from 'luxon'
+import {
+  Map,
+  View,
+  Overlay
+} from 'ol'
+import {
+  fromLonLat
+} from 'ol/proj'
+import {
+  Tile as TileLayer,
+  Vector as VectorLayer
+} from 'ol/layer'
+import {
+  OSM,
+  Vector as VectorSource
+} from 'ol/source'
 import GeoJSON from 'ol/format/GeoJSON'
 import Text from 'ol/style/Text'
 import CircleStyle from 'ol/style/Circle'
-import { Style, Stroke, Fill } from 'ol/style'
-import { colors, printDetails, printStats, calculateStats } from './utils'
+import {
+  Style,
+  Stroke,
+  Fill
+} from 'ol/style'
+import {
+  colors,
+  printDetails,
+  printStats,
+  calculateStats,
+  renderUsers
+} from './utils'
 
 // The WFS provided by EyeOnWater.org for Australia data
 const WFS_URL = 'https://geoservice.maris.nl/wms/project/eyeonwater_australia?service=WFS&version=1.0.0&request=GetFeature&typeName=eow_australia&maxFeatures=5000&outputFormat=application%2Fjson'
-
-let map = null
+const USER_SERVICE = 'https://www.eyeonwater.org/api/users'
 const styleCache = {}
+let map = null
+let allDataSource = new VectorSource({
+  format: new GeoJSON(),
+  url: WFS_URL
+})
+const userStore = {
+  users: [],
+  userById: {},
+  getUserById (userId) {
+    return this.userById[userId] || []
+  }
+}
+const measurementStore = {
+  measurements: [],
+  measurementsById: {},
+  measurementsByOwner: {},
+  getByOwner (userId) {
+    return this.measurementsByOwner[userId] || []
+  },
+  getById (id) {
+    return this.measurementsById[id] || []
+  }
+
+}
+
+function initialLoadMeasurements (event) {
+  const source = event.target
+  if (!source.loading) {
+    const features = allDataSource.getFeatures()
+    // Store the measurements in easy to access data structure
+    measurementStore.measurements = features
+    measurementStore.measurementsById = keyBy(features, f => f.get('n_code'))
+    measurementStore.measurementsByOwner = groupBy(features, f => f.get('user_n_code'))
+
+    recentMeasurements(measurementStore.measurements)
+    // loadMeasurements().then((_measurements) => {
+
+    // })
+    allDataSource.un('change', initialLoadMeasurements)
+  }
+}
+
+allDataSource.on('change', initialLoadMeasurements)
 
 let popup = new Overlay({
   element: document.getElementById('popup'),
   position: [0, 0],
-  positioning: 'center-center'
+  autoPan: true,
+  autoPanMargin: 275,
+  positioning: 'bottom-center'
 })
 
 // Style Features using ..... FU values (called for each feature on every render call)
@@ -29,7 +103,7 @@ const basicStyle = function (feature, resolution) {
   if (styleCache[styleKey]) {
     return styleCache[styleKey]
   }
-
+  feature.set('visible', true)
   const styleOptions = {
     image: new CircleStyle({
       radius: map.getView().getZoom() * Math.log2(5),
@@ -56,17 +130,16 @@ const basicStyle = function (feature, resolution) {
 }
 
 const dataLayer = new VectorLayer({
-  source: new VectorSource({
-    format: new GeoJSON(),
-    url: WFS_URL
-  }),
+  source: allDataSource,
   style: basicStyle
 })
 
-dataLayer.getSource().on('change', ({ target }) => {
+dataLayer.on('change', debounce(({
+  target
+}) => {
   // Populate datalayer
-  document.querySelector('.sub-header-stats').innerHTML = printStats(calculateStats(target.getFeatures()))
-})
+  document.querySelector('.sub-header-stats').innerHTML = printStats(calculateStats(target.getSource().getFeatures()), userStore)
+}, 200))
 
 map = new Map({
   target: 'map',
@@ -99,6 +172,63 @@ popup.getElement().addEventListener('click', function (event) {
   }
 }, false)
 
+document.getElementById('clearFilterButton').addEventListener('click', function (event) {
+  clearFilter()
+})
+
+document.querySelectorAll('.pull-tab').forEach(i => i.addEventListener('click', function (event) {
+  const element = event.target.closest('.panel')
+  element.classList.toggle('pulled')
+})
+)
+
+document.querySelector('.user-list').addEventListener('click', function (event) {
+  const element = event.target.closest('.item')
+  const userId = element.getAttribute('data-user')
+
+  if (showMeasurements(userId)) {
+    clearSelectedUser()
+    element.classList.add('selectedUser', 'box-shadow')
+    toggleFilterButton(true)
+  }
+}, true)
+
+document.querySelector('.measurement-list').addEventListener('click', function (event) {
+  const element = event.target.closest('.item')
+  if (!element) {
+    return
+  }
+  const coordinate = element.getAttribute('data-coordinate').split(',')
+  const id = element.getAttribute('data-key')
+  console.log(coordinate)
+  // map.getView().setCenter(coordinate)
+  // map.getView().setZoom(7)
+  const view = map.getView()
+  view.cancelAnimations()
+  view.animate({
+    center: coordinate,
+    zoom: 7,
+    duration: 1300
+  })
+  // clean up old popup and initilize some variables
+  popup.setVisible(false)
+  const popupElement = popup.getElement()
+  const content = popupElement.querySelector('.content')
+  const stats = popupElement.querySelector('.stats')
+  content.innerHTML = ''
+  popupElement.classList.remove('active')
+
+  const features = [measurementStore.getById(id)]
+
+  if (features.length) {
+    content.innerHTML = features.map(printDetails).join('')
+    stats.innerHTML = printStats(calculateStats(features), userStore)
+    popupElement.classList.add('active')
+
+    popup.setPosition(coordinate)
+  }
+}, true)
+
 // Show popup with features at certain point on the map
 map.on('click', function (evt) {
   const {
@@ -122,10 +252,74 @@ map.on('click', function (evt) {
 
   if (features.length) {
     content.innerHTML = features.map(printDetails).join('')
-    stats.innerHTML = printStats(calculateStats(features))
+    stats.innerHTML = printStats(calculateStats(features), userStore)
     element.classList.add('active')
     popup.setPosition(coordinate)
   }
 })
+
+async function loadUsers () {
+  const response = await window.fetch(USER_SERVICE)
+  const {
+    results: {
+      users
+    }
+  } = await response.json()
+  return users
+}
+
+loadUsers().then((_users) => {
+  userStore.users = _users
+  userStore.userById = keyBy(userStore.users, 'id')
+  renderUsers(userStore.users)
+})
+
+function clearFilter () {
+  dataLayer.setSource(allDataSource)
+  clearSelectedUser()
+  recentMeasurements(measurementStore.measurements)
+  toggleFilterButton(false)
+}
+
+function showMeasurements (userId = null) {
+  const newSource = new VectorSource()
+  const selection = measurementStore.getByOwner(userId)
+  if (!selection.length) {
+    return false
+  }
+  newSource.addFeatures(selection)
+
+  map.getView().fit(newSource.getExtent(), {
+    size: map.getSize(),
+    padding: [100, 100, 100, 100],
+    nearest: false,
+    duration: 1300
+  })
+  dataLayer.setSource(newSource)
+  recentMeasurements(selection)
+  return true
+}
+
+function toggleFilterButton (state = false) {
+  const element = document.getElementById('clearFilterButton')
+  element.classList.toggle('hidden', !state)
+}
+
+function clearSelectedUser () {
+  document.querySelectorAll('.user-list .item').forEach(item => {
+    item.classList.remove('selectedUser', 'box-shadow')
+  })
+}
+
+export function recentMeasurements (measurements, n = 20) {
+  const userList = orderBy(measurements, [(f) => (new Date(f.get('date_photo'))).getTime()], ['desc']).slice(0, n).map((measurement) => {
+    let prettyDate = DateTime.fromISO(measurement.get('date_photo')).toLocaleString(DateTime.DATE_FULL)
+
+    let itemTemplate = ` <li class="item measurement-item" data-coordinate="${measurement.getGeometry().getCoordinates()}" data-key="${measurement.get('n_code')}"><img src="https://eyeonwater.org/grfx/icons/small/${measurement.get('fu_value')}.png"> ${prettyDate}</li>`
+    return itemTemplate
+  })
+
+  document.querySelector('.measurement-list ul').innerHTML = userList.join('\n')
+}
 
 console.log('App loaded successfully...')

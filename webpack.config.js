@@ -9,50 +9,52 @@ module.exports = {
     hot: true
   },
   module: {
-    rules: [
-      {
-        test: /\.wkt$|\.geojson$/,
-        use: 'raw-loader'
-      },
-      {
-        test: /\.js$/,
-        exclude: /node_modules/,
-        use: {
-          loader: 'babel-loader'
-        }
-      }, {
-        test: /\.html$/,
-        use: [{
-          loader: 'html-loader',
-          options: {
-            minimize: true
-          }
-        }]
-
-      }, {
-        test: /\.scss$/,
-        use: [
-          'style-loader',
-          MiniCssExtractPlugin.loader,
-          'css-loader',
-          'sass-loader'
-        ]
-      }, {
-        test: /\.css$/,
-        use: ['style-loader', MiniCssExtractPlugin.loader, 'css-loader']
-      },
-      {
-        test: /\.tsx?$/,
-        use: [{
-          loader: 'ts-loader',
-          options: {
-            transpileOnly: true
-          }
-        }],
-
-        exclude: /node_modules/
-
+    rules: [{
+      test: /\.wkt$|\.geojson$/,
+      use: 'raw-loader'
+    },
+    {
+      test: /\.js$/,
+      exclude: /node_modules/,
+      use: {
+        loader: 'babel-loader'
       }
+    }, {
+      test: /\.html$/,
+      use: [{
+        loader: 'html-loader',
+        options: {
+          minimize: true
+        }
+      }]
+
+    }, {
+      test: /\.scss$/,
+      use: [
+        'style-loader',
+        // MiniCssExtractPlugin.loader,
+        'css-loader',
+        'sass-loader'
+      ]
+    }, {
+      test: /\.css$/,
+      use: ['style-loader',
+        //  ,MiniCssExtractPlugin.loader
+        'css-loader'
+      ]
+    },
+    {
+      test: /\.tsx?$/,
+      use: [{
+        loader: 'ts-loader',
+        options: {
+          transpileOnly: true
+        }
+      }],
+
+      exclude: /node_modules/
+
+    }
     ]
   },
   resolve: {
