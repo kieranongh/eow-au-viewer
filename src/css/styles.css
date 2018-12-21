@@ -238,13 +238,6 @@ pre {
   height: 60px;
 }
 
-.user-list li.item{
- /* border: 1px solid gray; */
-}
-.user-list li.item.selectedUser{
-
- }
-
 .user-list, .measurement-list {
   overflow-y: auto;
 }

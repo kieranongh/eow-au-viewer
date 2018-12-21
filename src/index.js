@@ -1,12 +1,9 @@
 import './css/styles.css'
-import orderBy from 'lodash/orderBy'
+
 import debounce from 'lodash/debounce'
 import keyBy from 'lodash/keyBy'
 import groupBy from 'lodash/groupBy'
 
-import {
-  DateTime
-} from 'luxon'
 import {
   Map,
   View,
@@ -36,7 +33,8 @@ import {
   printDetails,
   printStats,
   calculateStats,
-  renderUsers
+  renderUsers,
+  recentMeasurements
 } from './utils'
 
 // The WFS provided by EyeOnWater.org for Australia data
@@ -309,17 +307,6 @@ function clearSelectedUser () {
   document.querySelectorAll('.user-list .item').forEach(item => {
     item.classList.remove('selectedUser', 'box-shadow')
   })
-}
-
-export function recentMeasurements (measurements, n = 20) {
-  const userList = orderBy(measurements, [(f) => (new Date(f.get('date_photo'))).getTime()], ['desc']).slice(0, n).map((measurement) => {
-    let prettyDate = DateTime.fromISO(measurement.get('date_photo')).toLocaleString(DateTime.DATE_FULL)
-
-    let itemTemplate = ` <li class="item measurement-item" data-coordinate="${measurement.getGeometry().getCoordinates()}" data-key="${measurement.get('n_code')}"><img src="https://eyeonwater.org/grfx/icons/small/${measurement.get('fu_value')}.png"> ${prettyDate}</li>`
-    return itemTemplate
-  })
-
-  document.querySelector('.measurement-list ul').innerHTML = userList.join('\n')
 }
 
 console.log('App loaded successfully...')
