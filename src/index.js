@@ -269,6 +269,7 @@ function clearFilter () {
   dataLayer.setSource(allDataSource)
   clearSelectedUser()
   recentMeasurements(measurementStore.measurements)
+  map.getView().fit(dataLayer.getSource().getExtent(), { duration: 1300 })
   toggleFilterButton(false)
 }
 
