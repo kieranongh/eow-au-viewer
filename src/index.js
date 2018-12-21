@@ -113,15 +113,6 @@ const basicStyle = function (feature, resolution) {
       })
     })
   }
-  // Show fu value when zoomed in close
-  if (resolution < 20) {
-    styleOptions.text = new Text({
-      text: `${fuValue}`,
-      fill: new Fill({
-        color: 'white'
-      })
-    })
-  }
 
   styleCache[styleKey] = new Style(styleOptions)
   return styleCache[styleKey]
@@ -197,9 +188,6 @@ document.querySelector('.measurement-list').addEventListener('click', function (
   }
   const coordinate = element.getAttribute('data-coordinate').split(',')
   const id = element.getAttribute('data-key')
-  console.log(coordinate)
-  // map.getView().setCenter(coordinate)
-  // map.getView().setZoom(7)
   const view = map.getView()
   view.cancelAnimations()
   view.animate({
