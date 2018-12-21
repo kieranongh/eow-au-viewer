@@ -177,8 +177,7 @@ document.getElementById('clearFilterButton').addEventListener('click', function 
 document.querySelectorAll('.pull-tab').forEach(i => i.addEventListener('click', function (event) {
   const element = event.target.closest('.panel')
   element.classList.toggle('pulled')
-})
-)
+}))
 
 document.querySelector('.user-list').addEventListener('click', function (event) {
   const element = event.target.closest('.item')
@@ -266,12 +265,6 @@ async function loadUsers () {
   return users
 }
 
-loadUsers().then((_users) => {
-  userStore.users = _users
-  userStore.userById = keyBy(userStore.users, 'id')
-  renderUsers(userStore.users)
-})
-
 function clearFilter () {
   dataLayer.setSource(allDataSource)
   clearSelectedUser()
@@ -309,4 +302,8 @@ function clearSelectedUser () {
   })
 }
 
-console.log('App loaded successfully...')
+loadUsers().then((_users) => {
+  userStore.users = _users
+  userStore.userById = keyBy(userStore.users, 'id')
+  renderUsers(userStore.users)
+})
