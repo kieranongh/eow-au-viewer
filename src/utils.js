@@ -1,8 +1,8 @@
 import orderBy from 'lodash/orderBy'
-
 import {
   DateTime
 } from 'luxon'
+
 // Load colors json from external file to keep things neat
 export const colors = require('./colors.json')
 

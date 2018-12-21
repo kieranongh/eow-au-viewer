@@ -1,5 +1,4 @@
 import './css/styles.css'
-
 import debounce from 'lodash/debounce'
 import keyBy from 'lodash/keyBy'
 import groupBy from 'lodash/groupBy'
@@ -21,7 +20,6 @@ import {
   Vector as VectorSource
 } from 'ol/source'
 import GeoJSON from 'ol/format/GeoJSON'
-import Text from 'ol/style/Text'
 import CircleStyle from 'ol/style/Circle'
 import {
   Style,
@@ -46,6 +44,8 @@ let allDataSource = new VectorSource({
   format: new GeoJSON(),
   url: WFS_URL
 })
+
+// Fast datastructures to query the data
 const userStore = {
   users: [],
   userById: {},
@@ -65,6 +65,8 @@ const measurementStore = {
   }
 
 }
+// Get measurements from layer after it's done loading.
+allDataSource.on('change', initialLoadMeasurements)
 
 function initialLoadMeasurements (event) {
   const source = event.target
@@ -76,14 +78,9 @@ function initialLoadMeasurements (event) {
     measurementStore.measurementsByOwner = groupBy(features, f => f.get('user_n_code'))
 
     recentMeasurements(measurementStore.measurements)
-    // loadMeasurements().then((_measurements) => {
-
-    // })
     allDataSource.un('change', initialLoadMeasurements)
   }
 }
-
-allDataSource.on('change', initialLoadMeasurements)
 
 let popup = new Overlay({
   element: document.getElementById('popup'),
@@ -143,6 +140,54 @@ map = new Map({
     zoom: 2
   })
 })
+
+async function loadUsers () {
+  const response = await window.fetch(USER_SERVICE)
+  const {
+    results: {
+      users
+    }
+  } = await response.json()
+  return users
+}
+
+function clearFilter () {
+  dataLayer.setSource(allDataSource)
+  clearSelectedUser()
+  recentMeasurements(measurementStore.measurements)
+  map.getView().fit(dataLayer.getSource().getExtent(), { duration: 1300 })
+  toggleFilterButton(false)
+}
+
+function showMeasurements (userId = null) {
+  const newSource = new VectorSource()
+  const selection = measurementStore.getByOwner(userId)
+  if (!selection.length) {
+    return false
+  }
+  newSource.addFeatures(selection)
+
+  map.getView().fit(newSource.getExtent(), {
+    size: map.getSize(),
+    padding: [100, 100, 100, 100],
+    nearest: false,
+    duration: 1300
+  })
+  dataLayer.setSource(newSource)
+  recentMeasurements(selection)
+  return true
+}
+
+function toggleFilterButton (state = false) {
+  const element = document.getElementById('clearFilterButton')
+  element.classList.toggle('hidden', !state)
+}
+
+function clearSelectedUser () {
+  document.querySelectorAll('.user-list .item').forEach(item => {
+    item.classList.remove('selectedUser', 'box-shadow')
+  })
+}
 
 // Attach overlay and hide it
 map.addOverlay(popup)
@@ -242,55 +287,7 @@ map.on('click', function (evt) {
     popup.setPosition(coordinate)
   }
 })
-
-async function loadUsers () {
-  const response = await window.fetch(USER_SERVICE)
-  const {
-    results: {
-      users
-    }
-  } = await response.json()
-  return users
-}
-
-function clearFilter () {
-  dataLayer.setSource(allDataSource)
-  clearSelectedUser()
-  recentMeasurements(measurementStore.measurements)
-  map.getView().fit(dataLayer.getSource().getExtent(), { duration: 1300 })
-  toggleFilterButton(false)
-}
-
-function showMeasurements (userId = null) {
-  const newSource = new VectorSource()
-  const selection = measurementStore.getByOwner(userId)
-  if (!selection.length) {
-    return false
-  }
-  newSource.addFeatures(selection)
-
-  map.getView().fit(newSource.getExtent(), {
-    size: map.getSize(),
-    padding: [100, 100, 100, 100],
-    nearest: false,
-    duration: 1300
-  })
-  dataLayer.setSource(newSource)
-  recentMeasurements(selection)
-  return true
-}
-
-function toggleFilterButton (state = false) {
-  const element = document.getElementById('clearFilterButton')
-  element.classList.toggle('hidden', !state)
-}
-
-function clearSelectedUser () {
-  document.querySelectorAll('.user-list .item').forEach(item => {
-    item.classList.remove('selectedUser', 'box-shadow')
-  })
-}
-
+// Load users
 loadUsers().then((_users) => {
   userStore.users = _users
   userStore.userById = keyBy(userStore.users, 'id')
