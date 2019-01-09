@@ -206,6 +206,7 @@ popup.getElement().addEventListener('click', function (event) {
   }
 }, false)
 
+// Click events for panels
 document.getElementById('clearFilterButton').addEventListener('click', function (event) {
   clearFilter()
 })
