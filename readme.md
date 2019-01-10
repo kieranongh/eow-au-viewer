@@ -28,5 +28,5 @@ A simple viewer to visualize EOW:AU data.
   - `npm run build`
 
 ## Dependencies
-The only true dependency is OpenLayers v5, Luxon, and Lodash. The rest is just for development
+The only true dependencies are OpenLayers v5, Luxon, and Lodash. The rest are just for development
 
