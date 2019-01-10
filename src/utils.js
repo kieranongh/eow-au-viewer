@@ -101,7 +101,7 @@ export function calculateStats (features) {
 }
 
 export function renderUsers (users, n = 10) {
-  const userList = orderBy(users, ['points'], ['desc']).slice(0, n).map(user => {
+  const userList = orderBy(users, ['photo_count', 'points'], ['desc', 'desc']).slice(0, n).map(user => {
     let itemTemplate = ` <li class="item" data-user="${user.id}">
     <div>
       <img  class="icon-thumb" src="https://eyeonwater.org/grfx/${user.icon}">
